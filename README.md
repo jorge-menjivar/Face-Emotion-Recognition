@@ -11,6 +11,7 @@ There are four image sets under ./emotic:
  * emodb_small
  * framesdb
  * mscoco
+ 
 The dataset can be found in ./Anotations/Annotations.mat
 Annotation.mat file can be read using matlab. We can read it in python using:
 <pre><code>
