@@ -17,7 +17,7 @@ Annotation.mat file can be read using matlab. We can read it in python using:
 <pre><code>
 import numpy as np
 import h5py
-f = h5py.File('somefile.mat','r')
+f = h5py.File('Annotation.mat','r')
 data = f.get('data/variable1')
 data = np.array(data) # For converting to a NumPy array
 </code></pre>
