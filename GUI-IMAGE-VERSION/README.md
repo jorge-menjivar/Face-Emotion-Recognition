@@ -1,6 +1,7 @@
 # image-upload version of the gui
 
-(currently only a textbox and button that displays the inputted image on the page)
+- currently only a textbox and button that displays the inputted image on the page
+- pretty much plagiarizing https://www.blog.pythonlibrary.org/2021/02/16/creating-an-image-viewer-with-pysimplegui/ at this point but when we add more things it'll be ok
 
 must install pysimpleguiweb with `pip install pysimpleguiweb` prior to running
 
