@@ -22,3 +22,12 @@ data = f.get('data/variable1')
 data = np.array(data) # For converting to a NumPy array
 </code></pre>
 I will take a look into version compatibility. This way to read .mat file in python is yet to be tested.
+
+
+# Install the gui python environments
+* you need to put
+```console
+pip install -r requirements.txt
+```
+in GUI's root entry to install the requirement
+
