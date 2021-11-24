@@ -14,7 +14,7 @@ frame_up = sg.Frame('Parameter_tunning', [
     [
         sg.Radio('sample per 2', group_id='sample_size', default= True, enable_events=True, key='sample per 2'),
         sg.Radio('sample per 5', group_id='sample_size', enable_events=True, key='sample per 5'),
-        sg.Radio('sample per 10', group_id='sample_size', enable_events=True,key='sample per 10'),
+        sg.Radio('sample per 10', group_id='sample_size', enable_events=True, key='sample per 10'),
     ]], border_width=10, font='Helvetica 15 bold')
 frame_middle = sg.Frame('captured face', [[
     sg.Image(filename='', key='_IMAGE_FACE_'),
@@ -26,9 +26,11 @@ frame_down = sg.Frame('result', [[
 
 
 
-layout = [
-    [sg.Text('ECS171 G8 GUI Demo by Yiyang Huo', size=(40, 1), justification='center', font='Helvetica 20')],
-    [
+
+
+
+layout1 = [
+[
         sg.Image(filename='', key='_IMAGE_'),
         sg.Frame(title='', layout=[[frame_up], [frame_middle], [frame_down]])
     ],
@@ -37,7 +39,24 @@ layout = [
         sg.RButton('About', size=(10, 1), font='Helvetica 14')]], element_justification='center')
 
     ]
+]
 
+layout2 = [[sg.Input(key='_FILEBROWSE_', enable_events=True, visible=False)],
+            [sg.FileBrowse(target='_FILEBROWSE_')],
+            [sg.OK()]]
+
+tabgrp = [sg.TabGroup([
+            [
+                sg.Tab('Personal Details', layout1, border_width=20,
+                                tooltip='Image Stream', element_justification='center'),
+                sg.Tab('Education', layout2, tooltip='Image Upload')]
+            ], border_width=5)]
+
+
+
+layout = [
+    [sg.Text('ECS171 G8 GUI Demo by Yiyang Huo', size=(40, 1), justification='center', font='Helvetica 20')],
+    tabgrp
 ]
 
 # create the window and show it without the plot
@@ -105,7 +124,7 @@ while True:
 
                 appcontroller.update(imageFile)
 
-                window.FindElement('EMOTION').Update(value=appcontroller.emotion.value[0], text_color=appcontroller.emotion.value[1])
+                window.FindElement('EMOTION').Update(value=appcontroller.emotion.ui_component[0], text_color=appcontroller.emotion.ui_component[1])
         else:
             window.FindElement('_IMAGE_FACE_').Update(data=nosignal_byte)
 
