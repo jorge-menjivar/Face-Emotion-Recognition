@@ -1,11 +1,11 @@
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi import FastAPI, Request, Form, File, UploadFile
+from fastapi import FastAPI, Request, File, UploadFile
 import uvicorn
 from PIL import Image
 
-from demo import predict_image
+import predict_image
 
 app = FastAPI(root_path="/")
 
