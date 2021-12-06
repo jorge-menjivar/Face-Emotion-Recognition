@@ -17,6 +17,8 @@ Make sure you are in the demo directory, then install all the necessary modules 
 pip install -r requirements.txt
 ```
 
+If on Mac, make sure you are using python 3 as default
+
 Once you have installed all the required modules, you can run the server with
 
 ```console
@@ -27,8 +29,16 @@ python -m main
 Once the server is successfully running, you can access the web app on [localhost:8855]() using your web browser.
 
 # Install the GUI python environments
-* you need to put
+Make sure you are in the GUI_ECS_171 directory, then install all the necessary modules with
+
 ```console
 pip install -r requirements.txt
 ```
-in GUI_ECS_171's root entry to install the requirement
+
+If on Mac, make sure you are using python 3 as default
+
+Once you have installed all the required modules, you can run the server with
+
+```console
+python -m main
+```
