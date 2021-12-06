@@ -36,20 +36,17 @@ layout1 = [
     ]
 ]
 
-layout2 = [[sg.Input(key='_FILEBROWSE_', enable_events=True, visible=False)],
-           [sg.FileBrowse(target='_FILEBROWSE_')],
-           [sg.OK()]]
-
-tabgrp = [sg.TabGroup([
-    [
-        sg.Tab('Personal Details', layout1, border_width=20,
-               tooltip='Image Stream', element_justification='center'),
-        sg.Tab('Education', layout2, tooltip='Image Upload')]
-], border_width=5)]
-
 layout = [
     [sg.Text('ECS171 G8 GUI Demo by Yiyang Huo', size=(40, 1), justification='center', font='Helvetica 20')],
-    tabgrp
+    [
+        sg.Image(filename='', key='_IMAGE_'),
+        sg.Frame(title='', layout=[[frame_up], [frame_middle], [frame_down]])
+    ],
+    [
+        sg.Column(layout=[[sg.RButton('Exit', size=(10, 1), font='Helvetica 14'),
+                           sg.RButton('About', size=(10, 1), font='Helvetica 14')]], element_justification='center')
+
+    ]
 ]
 
 # create the window and show it without the plot
