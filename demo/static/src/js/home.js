@@ -17,13 +17,29 @@ class LoginUI extends React.Component {
 
     state = {
         selectedFile: null,
-        prediction: null
+        predictions: null
     };
+
+    predictionText = () => {
+        let typographies = [];
+        let faceCount = 0;
+        if (this.state.predictions != null) {
+            for (const prediction of this.state.predictions) {
+                faceCount++;
+                typographies.push(<Typography variant="h5" key={faceCount}>
+                    {"Face " + faceCount + ": " + prediction}
+                </Typography>)
+            }
+        }
+        return typographies;
+    }
 
     // Updating the selectedFile when the user selects a file
     onFileChange = event => {
-        this.setState({ selectedFile: event.target.files[0] });
-        this.setState( {prediction: null})
+        this.setState({
+            selectedFile: event.target.files[0],
+            predictions: null
+        })
 
         let reader = new FileReader();
         reader.onload = (e) => {
@@ -52,8 +68,11 @@ class LoginUI extends React.Component {
         axios.post("http://localhost:8855/upload_file", formData, headers)
             .then(res => {
                 console.log({res});
-                console.log(res.data["emotion"])
-                this.setState({prediction: res.data["emotion"]})
+                console.log(res.data["emotions"])
+                this.setState({
+                    image: "data:image/png;base64," + res.data["image"],
+                    predictions: res.data["emotions"]
+                })
             })
             .catch(err => {
                 console.error({err});
@@ -134,9 +153,7 @@ class LoginUI extends React.Component {
                                     </ListItem>
                                 </List>
                                 <img id="target" src={this.state.image} width="100%"/>
-                                <Typography variant="h4">
-                                    {(this.state.prediction != null) ? "Prediction: " : ""} {this.state.prediction}
-                                </Typography>
+                                {this.predictionText()}
                             </CardContent>
                             <CardActions>
                                 <Button

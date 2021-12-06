@@ -4,7 +4,6 @@ import io
 from sys import exit as exit
 import controller
 
-
 import cv2, PySimpleGUIQt as sg
 
 # define the window layout
@@ -12,7 +11,7 @@ import cv2, PySimpleGUIQt as sg
 
 frame_up = sg.Frame('Parameter_tunning', [
     [
-        sg.Radio('sample per 2', group_id='sample_size', default= True, enable_events=True, key='sample per 2'),
+        sg.Radio('sample per 2', group_id='sample_size', default=True, enable_events=True, key='sample per 2'),
         sg.Radio('sample per 5', group_id='sample_size', enable_events=True, key='sample per 5'),
         sg.Radio('sample per 10', group_id='sample_size', enable_events=True, key='sample per 10'),
     ]], border_width=10, font='Helvetica 15 bold')
@@ -21,38 +20,32 @@ frame_middle = sg.Frame('captured face', [[
 ]], border_width=10, font='Helvetica 15 bold')
 
 frame_down = sg.Frame('result', [[
-    sg.Text("no emotion detected", key="EMOTION", size=(300, 200), justification="center", auto_size_text=True, font='Helvetica 29 bold')
+    sg.Text("no emotion detected", key="EMOTION", size=(300, 200), justification="center", auto_size_text=True,
+            font='Helvetica 29 bold')
 ]], border_width=10, font='Helvetica 15 bold')
 
-
-
-
-
-
 layout1 = [
-[
+    [
         sg.Image(filename='', key='_IMAGE_'),
         sg.Frame(title='', layout=[[frame_up], [frame_middle], [frame_down]])
     ],
     [
         sg.Column(layout=[[sg.RButton('Exit', size=(10, 1), font='Helvetica 14'),
-        sg.RButton('About', size=(10, 1), font='Helvetica 14')]], element_justification='center')
+                           sg.RButton('About', size=(10, 1), font='Helvetica 14')]], element_justification='center')
 
     ]
 ]
 
 layout2 = [[sg.Input(key='_FILEBROWSE_', enable_events=True, visible=False)],
-            [sg.FileBrowse(target='_FILEBROWSE_')],
-            [sg.OK()]]
+           [sg.FileBrowse(target='_FILEBROWSE_')],
+           [sg.OK()]]
 
 tabgrp = [sg.TabGroup([
-            [
-                sg.Tab('Personal Details', layout1, border_width=20,
-                                tooltip='Image Stream', element_justification='center'),
-                sg.Tab('Education', layout2, tooltip='Image Upload')]
-            ], border_width=5)]
-
-
+    [
+        sg.Tab('Personal Details', layout1, border_width=20,
+               tooltip='Image Stream', element_justification='center'),
+        sg.Tab('Education', layout2, tooltip='Image Upload')]
+], border_width=5)]
 
 layout = [
     [sg.Text('ECS171 G8 GUI Demo by Yiyang Huo', size=(40, 1), justification='center', font='Helvetica 20')],
@@ -72,9 +65,8 @@ nosignal_byte = buf.getvalue()
 
 appcontroller = controller.Controller()
 
-
 # ---===--- Event LOOP Read and display frames, operate the GUI --- #
-cap = cv2.VideoCapture(0)                               # Setup the OpenCV capture device (webcam)
+cap = cv2.VideoCapture(0)  # Setup the OpenCV capture device (webcam)
 while True:
 
     button, values = window.Read(timeout=20, timeout_key='timeout')
@@ -100,7 +92,6 @@ while True:
                        keep_on_top=False)
         appcontroller.setSample(10)
 
-
     ret, frame = cap.read()
 
     if appcontroller.counter % appcontroller.sample_size == 0:
@@ -124,7 +115,8 @@ while True:
 
                 appcontroller.update(imageFile)
 
-                window.FindElement('EMOTION').Update(value=appcontroller.emotion.ui_component[0], text_color=appcontroller.emotion.ui_component[1])
+                window.FindElement('EMOTION').Update(value=appcontroller.emotion.ui_component[0],
+                                                     text_color=appcontroller.emotion.ui_component[1])
         else:
             window.FindElement('_IMAGE_FACE_').Update(data=nosignal_byte)
 
@@ -133,5 +125,5 @@ while True:
     appcontroller.counter += 1
 
     # Read image from capture device (camera)
-    imgbytes=cv2.imencode('.png', frame)[1].tobytes()     # Convert the image to PNG Bytes
-    window.FindElement('_IMAGE_').Update(data=imgbytes)   # Change the Image Element to show the new image
+    imgbytes = cv2.imencode('.png', frame)[1].tobytes()  # Convert the image to PNG Bytes
+    window.FindElement('_IMAGE_').Update(data=imgbytes)  # Change the Image Element to show the new image

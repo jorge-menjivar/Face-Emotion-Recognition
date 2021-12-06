@@ -45138,6 +45138,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _material_ui_icons__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @material-ui/icons */ "./node_modules/@material-ui/icons/esm/AttachFile.js");
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -45182,16 +45188,40 @@ var LoginUI = /*#__PURE__*/function (_React$Component) {
 
     _defineProperty(_assertThisInitialized(_this), "state", {
       selectedFile: null,
-      prediction: null
+      predictions: null
+    });
+
+    _defineProperty(_assertThisInitialized(_this), "predictionText", function () {
+      var typographies = [];
+      var faceCount = 0;
+
+      if (_this.state.predictions != null) {
+        var _iterator = _createForOfIteratorHelper(_this.state.predictions),
+            _step;
+
+        try {
+          for (_iterator.s(); !(_step = _iterator.n()).done;) {
+            var prediction = _step.value;
+            faceCount++;
+            typographies.push( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createElement(_material_ui_core__WEBPACK_IMPORTED_MODULE_3__["default"], {
+              variant: "h5",
+              key: faceCount
+            }, "Face " + faceCount + ": " + prediction));
+          }
+        } catch (err) {
+          _iterator.e(err);
+        } finally {
+          _iterator.f();
+        }
+      }
+
+      return typographies;
     });
 
     _defineProperty(_assertThisInitialized(_this), "onFileChange", function (event) {
       _this.setState({
-        selectedFile: event.target.files[0]
-      });
-
-      _this.setState({
-        prediction: null
+        selectedFile: event.target.files[0],
+        predictions: null
       });
 
       var reader = new FileReader();
@@ -45219,10 +45249,11 @@ var LoginUI = /*#__PURE__*/function (_React$Component) {
         console.log({
           res: res
         });
-        console.log(res.data["emotion"]);
+        console.log(res.data["emotions"]);
 
         _this.setState({
-          prediction: res.data["emotion"]
+          image: "data:image/png;base64," + res.data["image"],
+          predictions: res.data["emotions"]
         });
       })["catch"](function (err) {
         console.error({
@@ -45291,9 +45322,7 @@ var LoginUI = /*#__PURE__*/function (_React$Component) {
         id: "target",
         src: this.state.image,
         width: "100%"
-      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createElement(_material_ui_core__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        variant: "h4"
-      }, this.state.prediction != null ? "Prediction: " : "", " ", this.state.prediction)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createElement(_material_ui_core__WEBPACK_IMPORTED_MODULE_12__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createElement(_material_ui_core__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      }), this.predictionText()), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createElement(_material_ui_core__WEBPACK_IMPORTED_MODULE_12__["default"], null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createElement(_material_ui_core__WEBPACK_IMPORTED_MODULE_11__["default"], {
         variant: "contained",
         size: "small",
         color: "primary",
