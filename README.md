@@ -13,13 +13,13 @@ kaggle.com/deadskull7/fer2013
 ## Running Server
 Make sure you are in the demo directory, then install all the necessary modules with
 
-```
+```console
 pip install -r requirements.txt
 ```
 
 Once you have installed all the required modules, you can run the server with
 
-```
+```console
 python -m main
 ```
 
