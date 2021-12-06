@@ -1,10 +1,13 @@
 # ECS171-Facial-Recognition
 This is the Final Project of ECS 171 Fall 2021
 
-## Data set:
-[kaggle.com/deadskull7/fer2013](kaggle.com/deadskull7/fer2013)
+## Data set
 
-## Brief description:
+[kaggle.com/deadskull7/fer2013](https://kaggle.com/deadskull7/fer2013)
+
+
+## Brief description
+
  * anger, disgust, fear, happiness, sadness, surprise, and neutral
  * 35887 data entries: 80% training, 10% validating, 10% testing
 
