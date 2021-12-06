@@ -17,7 +17,7 @@ Make sure you are in the demo directory, then install all the necessary modules 
 pip install -r requirements.txt
 ```
 
-If on Mac, make sure you are using python 3 as default
+If on Mac, make sure you are using python 3 as default or use pip3 instead
 
 Once you have installed all the required modules, you can run the server with
 
@@ -35,7 +35,7 @@ Make sure you are in the GUI_ECS_171 directory, then install all the necessary m
 pip install -r requirements.txt
 ```
 
-If on Mac, make sure you are using python 3 as default
+If on Mac, make sure you are using python 3 as default or use pip3 instead
 
 Once you have installed all the required modules, you can run the server with
 
