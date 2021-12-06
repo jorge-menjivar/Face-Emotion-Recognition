@@ -1,7 +1,6 @@
 import sys
 from PIL import Image
 import io
-from sys import exit as exit
 import controller
 
 import cv2, PySimpleGUIQt as sg
@@ -37,7 +36,7 @@ layout1 = [
 ]
 
 layout = [
-    [sg.Text('ECS171 G8 GUI Demo by Yiyang Huo', size=(40, 1), justification='center', font='Helvetica 20')],
+    [sg.Text('ECS171 G8 GUI', size=(40, 1), justification='center', font='Helvetica 20')],
     [
         sg.Image(filename='', key='_IMAGE_'),
         sg.Frame(title='', layout=[[frame_up], [frame_middle], [frame_down]])
@@ -72,9 +71,7 @@ while True:
     elif button == 'About':
         sg.PopupNoWait('Made with PySimpleGUI',
                        'www.PySimpleGUI.org',
-                       'Check out how the video keeps playing behind this window.',
-                       'I finally figured out how to display frames from a webcam.',
-                       'ENJOY!  Go make something really cool with this... please!',
+                       'A demo project made by Group 8 Yiyang Huo',
                        keep_on_top=True)
     elif button == "sample per 2":
         sg.PopupNoWait('sample the frame per 2 frames',
