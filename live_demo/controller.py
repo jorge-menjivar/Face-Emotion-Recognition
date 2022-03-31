@@ -12,7 +12,7 @@ class Emotions(Enum):
     HAPPY = 4, ["Happy", "green"]
     SAD = 5, ["Sad", "grey39"]
     SURPRISE = 6, ["Surprise", "turquoise1"]
-    NEUTRAL = 7, ["Netral", "white"]
+    NEUTRAL = 7, ["Neutral", "white"]
 
     def __new__(cls, value, name):
         member = object.__new__(cls)
