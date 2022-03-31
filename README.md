@@ -1,5 +1,11 @@
-# ECS171-Facial-Recognition
-This is the Final Project of ECS 171 Fall 2021, Group 8
+# Preview
+
+<img src="example_images/live_demo.gif" width="400"/>
+<img src="example_images/static_demo.png" width="400"/>
+
+# Introduction
+
+This project is able to predict human emotion by receiving an input image. It was created by group of students at University of California, Davis.
 
 ## Data set
 
