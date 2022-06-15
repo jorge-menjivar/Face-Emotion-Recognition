@@ -4,15 +4,16 @@ import cv2 as cv
 import PySimpleGUIQt as sg
 from keras.models import model_from_json
 import numpy as np
+from PIL import ImageColor
 
 sample_frequency = 5
 
-json_file = open('./models/CNN.json', 'r')
+json_file = open('./models/CNN2.json', 'r')
 model_json = json_file.read()
 json_file.close()
 model = model_from_json(model_json)
 # load weights into new model
-model.load_weights("./models/CNN.h5")
+model.load_weights("./models/CNN2.h5")
 print("Loaded model from disk")
 
 # define the window layout
@@ -46,78 +47,79 @@ freq_widget = sg.Frame(
             font='_ 12',
         ),
     ]],
-    font='_ 16',
-)
-
-# Outputing Prediction
-output_widget = sg.Frame(
-    title='Emotion:',
-    layout=[[sg.Text(
-        "",
-        key="RES",
-        justification="center",
-        font='_ 16',
-    )]],
-    border_width=10,
-    font='_ 16',
+    font='_ 14',
 )
 
 # Full Layout
 layout = [
-    [
-        sg.Image(filename='', key='CAM'),  # Camera Widget
-        sg.Frame(
-            title='',
-            layout=[[freq_widget], [output_widget]],
-            border_width=0,
-        ),
-    ],
+    [freq_widget],
+    [sg.Image(filename='', key='CAM')],  # Camera Widget
 ]
 
 # create the window and show it without the plot
-window = sg.Window('Emotion Recognition', layout).Finalize()
+window = sg.Window('Emotion Recognition', layout)
 face_cascade = cv.CascadeClassifier('face_default.xml')
 
+emotions = []
+emotion_colors = []
+face_frames = []
 
-async def predict(image: cv.Mat, face: tuple, _window: sg.Window):
-    (x, y, w, h) = face
 
-    emotion = ""
-    text_color = "white"
+async def predict(image: cv.Mat, faces: list[tuple]):
 
-    if w >= 48 and h >= 48:
-        image = image[y:y + h, x:x + w]
+    emotions.clear()
+    emotion_colors.clear()
+    face_frames.clear()
 
-        input_image = cv.resize(image, (48, 48))
+    for face in faces:
+        (x, y, w, h) = face
+        b = y + h
+        r = x + w
 
-        input_image = input_image.reshape((1, 48, 48, 1)) / 255  # type: ignore
+        if w >= 48 and h >= 48:
 
-        prediction = np.argmax(model.predict(input_image), axis=1)
+            try:
+                face_image = image[y:b, x:r]
 
-        emotion_label_to_text = {
-            0: 'anger',
-            1: 'disgust',
-            2: 'fear',
-            3: 'happiness',
-            4: 'sadness',
-            5: 'surprise',
-            6: 'neutral'
-        }
+                input_image = cv.resize(face_image, (48, 48))
 
-        colors = {
-            0: "#CD5B45",
-            1: "#228B22",
-            2: "#474747",
-            3: "#FFC125",
-            4: "#6495ED",
-            5: "#B03060",
-            6: "white"
-        }
+                input_image = input_image.reshape(
+                    (1, 48, 48, 1)) / 255  # type: ignore
 
-        emotion = emotion_label_to_text.get(prediction[0])
-        text_color = colors.get(prediction[0])
+                prediction = np.argmax(model.predict(input_image), axis=1)
 
-    _window['RES'].update(value=emotion, text_color=text_color)  # type: ignore
+                emotion_label_to_text = {
+                    0: 'anger',
+                    1: 'disgust',
+                    2: 'fear',
+                    3: 'happiness',
+                    4: 'sadness',
+                    5: 'surprise',
+                    6: 'neutral'
+                }
+
+                colors = {
+                    0: "#CD5B45",
+                    1: "#228B22",
+                    2: "#474747",
+                    3: "#FFC125",
+                    4: "#6495ED",
+                    5: "#B03060",
+                    6: "#ffffff"
+                }
+
+                emotions.append(emotion_label_to_text.get(prediction[0]))
+
+                color = colors.get(prediction[0])
+                r, g, b = ImageColor.getcolor(color, "RGB")  # type: ignore
+                emotion_colors.append((b, g, r))
+
+                face_frames.append(face)
+
+            except cv.error:
+                print("ERROR")
+
+    return
 
 
 buf = io.BytesIO()
@@ -127,7 +129,6 @@ print(sg.theme_list())
 
 # ---------------------------------- Rendering -------------------------------
 
-face_frame = -1, -1, -1, -1
 frame_count = 1
 while True:
 
@@ -151,12 +152,22 @@ while True:
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.1, 6)
 
-        for face in faces:
-            face_frame = face
-            asyncio.run(predict(gray, face, window))
+        asyncio.run(predict(gray, faces))
 
-    (x, y, w, h) = face_frame
-    cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
+    for emotion, color, face_frame in zip(emotions, emotion_colors,
+                                          face_frames):
+        (x, y, w, h) = face_frame
+        cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
+        cv.putText(
+            frame,
+            emotion,
+            (x, y - 10),
+            cv.FONT_HERSHEY_SIMPLEX,
+            .6,
+            color,
+            1,
+            cv.LINE_AA,
+        )
 
     # Update camera window
     imgbytes = cv.imencode('.png', frame)[1].tobytes()
