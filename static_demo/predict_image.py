@@ -1,19 +1,18 @@
-import cv2
 from keras.models import model_from_json
 import numpy as np
 import cv2 as cv
 
 
-def run(image: cv.cvtColor, face: (int, int, int, int)):
+def run(image: cv.Mat, face: tuple):
 
     (x, y, w, h) = face
 
     if w >= 48 and h >= 48:
-        image = image[y: y+h, x: x+w]
+        image = image[y:y + h, x:x + w]
 
-        input_image = cv2.resize(image, (48, 48))
+        input_image: cv.Mat = cv.resize(image, (48, 48))
 
-        input_image = input_image.reshape((1, 48, 48, 1))/255
+        input_image = input_image.reshape((1, 48, 48, 1)) / 255  # type: ignore
 
         json_file = open('CNN2.json', 'r')
         loaded_model_json = json_file.read()
@@ -39,4 +38,3 @@ def run(image: cv.cvtColor, face: (int, int, int, int)):
 
     else:
         return "Face size not big enough"
-

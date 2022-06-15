@@ -16,11 +16,7 @@ app = FastAPI(root_path="/")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="static/templates")
 
-origins = [
-    "http://localhost:8855",
-    "http://localhost:8855/upload_file",
-    "*"
-]
+origins = ["http://localhost:8855", "http://localhost:8855/upload_file", "*"]
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -46,21 +42,19 @@ async def upload_file(user_image: UploadFile = File(...)):
         (x, y, w, h) = face
         face_count += 1
         cv.rectangle(color, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        cv.putText(color, f"Face {face_count}", (x, y-10), cv.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+        cv.putText(color, f"Face {face_count}", (x, y - 10),
+                   cv.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
         emotions.append(predict_image.run(gray, face))
 
     image_bytes = cv.imencode('.png', color)[1]
     encoded_image_string = base64.b64encode(image_bytes)
 
-    return {
-        "image": encoded_image_string,
-        "emotions": emotions
-    }
+    return {"image": encoded_image_string, "emotions": emotions}
 
 
 if __name__ == "__main__":
     uvicorn.run(
-        app,
+        app,  # type: ignore
         host="localhost",
         port=8855,
     )
