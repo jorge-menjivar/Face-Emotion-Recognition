@@ -109,7 +109,7 @@ while True:
             emotion,
             (x, y - 10),
             cv.FONT_HERSHEY_SIMPLEX,
-            .6,
+            1,
             color,
             1,
             cv.LINE_AA,
