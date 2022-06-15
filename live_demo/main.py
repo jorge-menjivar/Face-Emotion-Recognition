@@ -44,7 +44,7 @@ freq_widget = sg.Frame(
 # Full Layout
 layout = [
     [freq_widget],
-    [sg.Image(filename='', key='CAM')],  # Camera Widget
+    [sg.Image(filename='', key='CAM', size=(500, 500))],  # Camera Widget
 ]
 
 # create the window and show it without the plot
@@ -54,7 +54,6 @@ face_cascade = cv.CascadeClassifier('face_default.xml')
 buf = io.BytesIO()
 
 cap = cv.VideoCapture(0)  # Setup the OpenCV capture device (webcam)
-print(sg.theme_list())
 
 queue = Queue()
 predictor_thread = Predictor(queue)
