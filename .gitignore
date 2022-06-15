@@ -10,7 +10,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -131,3 +130,5 @@ dmypy.json
 */.idea/
 .idea
 */__pycache__
+
+node_modules/
