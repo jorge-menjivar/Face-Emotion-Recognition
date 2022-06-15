@@ -44,11 +44,16 @@ freq_widget = sg.Frame(
 # Full Layout
 layout = [
     [freq_widget],
-    [sg.Image(filename='', key='CAM', size=(500, 500))],  # Camera Widget
+    [sg.Image(filename='', key='CAM')],  # Camera Widget
 ]
 
-# create the window and show it without the plot
-window = sg.Window('Emotion Recognition', layout)
+window = sg.Window(
+    'Emotion Recognition',
+    layout,
+    resizable=True,
+    finalize=True,
+)
+
 face_cascade = cv.CascadeClassifier('face_default.xml')
 
 buf = io.BytesIO()
@@ -61,6 +66,7 @@ predictor_thread.start()
 
 # ---------------------------------- Rendering -------------------------------
 
+CAM_WINDOW_W = 700
 frame_count = 1
 while True:
 
@@ -110,6 +116,14 @@ while True:
         )
 
     # Update camera window
+    h, w, _ = frame.shape
+
+    diff = ((CAM_WINDOW_W - 20) - w) / w
+
+    new_w = CAM_WINDOW_W
+    new_h = round(h + (h * diff))
+
+    frame = cv.resize(frame, (new_w, new_h))  # type: ignore
     imgbytes = cv.imencode('.png', frame)[1].tobytes()
     window['CAM'].update(data=imgbytes)  # type: ignore
 
