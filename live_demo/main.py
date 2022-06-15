@@ -1,20 +1,11 @@
-import asyncio
 import io
+from queue import Queue
 import cv2 as cv
 import PySimpleGUIQt as sg
-from keras.models import model_from_json
-import numpy as np
-from PIL import ImageColor
+
+from Predictor import Predictor
 
 sample_frequency = 5
-
-json_file = open('./models/CNN2.json', 'r')
-model_json = json_file.read()
-json_file.close()
-model = model_from_json(model_json)
-# load weights into new model
-model.load_weights("./models/CNN2.h5")
-print("Loaded model from disk")
 
 # define the window layout
 
@@ -60,72 +51,14 @@ layout = [
 window = sg.Window('Emotion Recognition', layout)
 face_cascade = cv.CascadeClassifier('face_default.xml')
 
-emotions = []
-emotion_colors = []
-face_frames = []
-
-
-async def predict(image: cv.Mat, faces: list[tuple]):
-
-    emotions.clear()
-    emotion_colors.clear()
-    face_frames.clear()
-
-    for face in faces:
-        (x, y, w, h) = face
-        b = y + h
-        r = x + w
-
-        if w >= 48 and h >= 48:
-
-            try:
-                face_image = image[y:b, x:r]
-
-                input_image = cv.resize(face_image, (48, 48))
-
-                input_image = input_image.reshape(
-                    (1, 48, 48, 1)) / 255  # type: ignore
-
-                prediction = np.argmax(model.predict(input_image), axis=1)
-
-                emotion_label_to_text = {
-                    0: 'anger',
-                    1: 'disgust',
-                    2: 'fear',
-                    3: 'happiness',
-                    4: 'sadness',
-                    5: 'surprise',
-                    6: 'neutral'
-                }
-
-                colors = {
-                    0: "#CD5B45",
-                    1: "#228B22",
-                    2: "#474747",
-                    3: "#FFC125",
-                    4: "#6495ED",
-                    5: "#B03060",
-                    6: "#ffffff"
-                }
-
-                emotions.append(emotion_label_to_text.get(prediction[0]))
-
-                color = colors.get(prediction[0])
-                r, g, b = ImageColor.getcolor(color, "RGB")  # type: ignore
-                emotion_colors.append((b, g, r))
-
-                face_frames.append(face)
-
-            except cv.error:
-                print("ERROR")
-
-    return
-
-
 buf = io.BytesIO()
 
 cap = cv.VideoCapture(0)  # Setup the OpenCV capture device (webcam)
 print(sg.theme_list())
+
+queue = Queue()
+predictor_thread = Predictor(queue)
+predictor_thread.start()
 
 # ---------------------------------- Rendering -------------------------------
 
@@ -152,8 +85,16 @@ while True:
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.1, 6)
 
-        asyncio.run(predict(gray, faces))
+        # Sending image and faces to the predictor thread queue and continuing
+        if queue.qsize() < 4:  # Making sure not overwhelm predictor
+            queue.put((gray, faces))
 
+    # Reading whatever the predictor thread has been able to predict
+    emotions = predictor_thread.emotions
+    emotion_colors = predictor_thread.emotion_colors
+    face_frames = predictor_thread.face_frames
+
+    # Displaying the predictions of the predictor thread
     for emotion, color, face_frame in zip(emotions, emotion_colors,
                                           face_frames):
         (x, y, w, h) = face_frame
@@ -179,4 +120,5 @@ while True:
     frame_count += 1
 
 window.close()
+queue.put((None, None))
 cap.release()
