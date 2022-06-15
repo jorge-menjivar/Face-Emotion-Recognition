@@ -1,123 +1,171 @@
-import sys
-from PIL import Image
+import asyncio
 import io
-import controller
+import cv2 as cv
+import PySimpleGUIQt as sg
+from keras.models import model_from_json
+import numpy as np
 
-import cv2, PySimpleGUIQt as sg
+sample_frequency = 5
+
+json_file = open('./models/CNN.json', 'r')
+model_json = json_file.read()
+json_file.close()
+model = model_from_json(model_json)
+# load weights into new model
+model.load_weights("./models/CNN.h5")
+print("Loaded model from disk")
 
 # define the window layout
 
+sg.theme('Dark2')
 
-frame_up = sg.Frame('Parameter_tunning', [
-    [
-        sg.Radio('sample per 2', group_id='sample_size', default=True, enable_events=True, key='sample per 2'),
-        sg.Radio('sample per 5', group_id='sample_size', enable_events=True, key='sample per 5'),
-        sg.Radio('sample per 10', group_id='sample_size', enable_events=True, key='sample per 10'),
-    ]], border_width=10, font='Helvetica 15 bold')
-frame_middle = sg.Frame('captured face', [[
-    sg.Image(filename='', key='_IMAGE_FACE_'),
-]], border_width=10, font='Helvetica 15 bold')
+# Sample Frequency
+freq_widget = sg.Frame(
+    title="Sample Frequency",
+    layout=[[
+        sg.Radio(
+            '2 frames',
+            group_id='sample_size',
+            enable_events=True,
+            key='sample per 2',
+            font='_ 12',
+        ),
+        sg.Radio(
+            '5 frames',
+            group_id='sample_size',
+            enable_events=True,
+            default=True,
+            key='sample per 5',
+            font='_ 12',
+        ),
+        sg.Radio(
+            '10 frames',
+            group_id='sample_size',
+            enable_events=True,
+            key='sample per 10',
+            font='_ 12',
+        ),
+    ]],
+    font='_ 16',
+)
 
-frame_down = sg.Frame('result', [[
-    sg.Text("no emotion detected", key="EMOTION", size=(300, 200), justification="center", auto_size_text=True,
-            font='Helvetica 29 bold')
-]], border_width=10, font='Helvetica 15 bold')
+# Outputing Prediction
+output_widget = sg.Frame(
+    title='Emotion:',
+    layout=[[sg.Text(
+        "",
+        key="RES",
+        justification="center",
+        font='_ 16',
+    )]],
+    border_width=10,
+    font='_ 16',
+)
 
-layout1 = [
-    [
-        sg.Image(filename='', key='_IMAGE_'),
-        sg.Frame(title='', layout=[[frame_up], [frame_middle], [frame_down]])
-    ],
-    [
-        sg.Column(layout=[[sg.RButton('Exit', size=(10, 1), font='Helvetica 14'),
-                           sg.RButton('About', size=(10, 1), font='Helvetica 14')]], element_justification='center')
-
-    ]
-]
-
+# Full Layout
 layout = [
-    [sg.Text('ECS171 G8 GUI', size=(40, 1), justification='center', font='Helvetica 20')],
     [
-        sg.Image(filename='', key='_IMAGE_'),
-        sg.Frame(title='', layout=[[frame_up], [frame_middle], [frame_down]])
+        sg.Image(filename='', key='CAM'),  # Camera Widget
+        sg.Frame(
+            title='',
+            layout=[[freq_widget], [output_widget]],
+            border_width=0,
+        ),
     ],
-    [
-        sg.Column(layout=[[sg.RButton('Exit', size=(10, 1), font='Helvetica 14'),
-                           sg.RButton('About', size=(10, 1), font='Helvetica 14')]], element_justification='center')
-
-    ]
 ]
 
 # create the window and show it without the plot
-window = sg.Window('Demo Application', layout).Finalize()
-window.Maximize()
-face_cascade = cv2.CascadeClassifier('face_default.xml')
+window = sg.Window('Emotion Recognition', layout).Finalize()
+face_cascade = cv.CascadeClassifier('face_default.xml')
 
-nosignal = Image.open('no_signal.jpeg')
-nosignal = nosignal.resize((300, 300))
+
+async def predict(image: cv.Mat, face: tuple, _window: sg.Window):
+    (x, y, w, h) = face
+
+    emotion = ""
+    text_color = "white"
+
+    if w >= 48 and h >= 48:
+        image = image[y:y + h, x:x + w]
+
+        input_image = cv.resize(image, (48, 48))
+
+        input_image = input_image.reshape((1, 48, 48, 1)) / 255  # type: ignore
+
+        prediction = np.argmax(model.predict(input_image), axis=1)
+
+        emotion_label_to_text = {
+            0: 'anger',
+            1: 'disgust',
+            2: 'fear',
+            3: 'happiness',
+            4: 'sadness',
+            5: 'surprise',
+            6: 'neutral'
+        }
+
+        colors = {
+            0: "#CD5B45",
+            1: "#228B22",
+            2: "#474747",
+            3: "#FFC125",
+            4: "#6495ED",
+            5: "#B03060",
+            6: "white"
+        }
+
+        emotion = emotion_label_to_text.get(prediction[0])
+        text_color = colors.get(prediction[0])
+
+    _window['RES'].update(value=emotion, text_color=text_color)  # type: ignore
+
+
 buf = io.BytesIO()
-nosignal.save(buf, format='JPEG')
-nosignal_byte = buf.getvalue()
 
-appcontroller = controller.Controller()
+cap = cv.VideoCapture(0)  # Setup the OpenCV capture device (webcam)
+print(sg.theme_list())
 
-# ---===--- Event LOOP Read and display frames, operate the GUI --- #
-cap = cv2.VideoCapture(0)  # Setup the OpenCV capture device (webcam)
+# ---------------------------------- Rendering -------------------------------
+
+face_frame = -1, -1, -1, -1
+frame_count = 1
 while True:
 
-    button, values = window.Read(timeout=20, timeout_key='timeout')
-    if button == 'Exit' or values == None:
-        sys.exit(0)
-    elif button == 'About':
-        sg.PopupNoWait('Made with PySimpleGUI',
-                       'www.PySimpleGUI.org',
-                       'A demo project made by Group 8 Yiyang Huo',
-                       keep_on_top=True)
-    elif button == "sample per 2":
-        sg.PopupNoWait('sample the frame per 2 frames',
-                       keep_on_top=False)
-        appcontroller.setSample(2)
-    elif button == "sample per 5":
-        sg.PopupNoWait('sample the frame per 5 frames',
-                       keep_on_top=False)
-        appcontroller.setSample(5)
-    elif button == "sample per 10":
-        sg.PopupNoWait('sample the frame per 10 frames',
-                       keep_on_top=False)
-        appcontroller.setSample(10)
+    event, values = window.Read(timeout=20, timeout_key='timeout')
+    if event in (sg.WIN_CLOSED, 'Quit'):
+        break
+    elif event == "sample per 2":
+        sample_frequency = 2
+    elif event == "sample per 5":
+        sample_frequency = 5
+    elif event == "sample per 10":
+        sample_frequency = 10
 
     ret, frame = cap.read()
 
-    if appcontroller.counter % appcontroller.sample_size == 0:
-        appcontroller.counter = 0
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    if not ret:
+        print("Can't receive frame (stream end?). Exiting ...")
+        break
+
+    if frame_count % sample_frequency == 0:
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.1, 6)
-        if len(faces) > 0:
-            appcontroller.frame = faces[0]
-            (x, y, w, h) = appcontroller.frame
-            if w > 100 and h > 100:
-                w = int(w * 1.1)
-                h = int(h * 1.1)
-                inspect_face = frame[y: y + h, x: x + w]
-                imgbytes = cv2.imencode('.png', inspect_face)[1].tobytes()
-                imageFile = Image.open(io.BytesIO(imgbytes))
-                imageFile = imageFile.resize((int(h / w * 300), 300))
-                buf = io.BytesIO()
-                imageFile.save(buf, format='JPEG')
-                byte_im = buf.getvalue()
-                window.FindElement('_IMAGE_FACE_').Update(data=byte_im)
 
-                appcontroller.update(imageFile)
+        for face in faces:
+            face_frame = face
+            asyncio.run(predict(gray, face, window))
 
-                window.FindElement('EMOTION').Update(value=appcontroller.emotion.ui_component[0],
-                                                     text_color=appcontroller.emotion.ui_component[1])
-        else:
-            window.FindElement('_IMAGE_FACE_').Update(data=nosignal_byte)
+    (x, y, w, h) = face_frame
+    cv.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
-    (x, y, w, h) = appcontroller.frame
-    cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-    appcontroller.counter += 1
+    # Update camera window
+    imgbytes = cv.imencode('.png', frame)[1].tobytes()
+    window['CAM'].update(data=imgbytes)  # type: ignore
 
-    # Read image from capture device (camera)
-    imgbytes = cv2.imencode('.png', frame)[1].tobytes()  # Convert the image to PNG Bytes
-    window.FindElement('_IMAGE_').Update(data=imgbytes)  # Change the Image Element to show the new image
+    if frame_count == 60:
+        frame_count = 0
+
+    frame_count += 1
+
+window.close()
+cap.release()
