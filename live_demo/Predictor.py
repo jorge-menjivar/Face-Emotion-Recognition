@@ -15,12 +15,12 @@ class Predictor(Thread):
         self.emotion_colors = []
         self.face_frames = []
 
-        json_file = open('./models/CNN2.json', 'r')
+        json_file = open('./models/CNN.json', 'r')
         model_json = json_file.read()
         json_file.close()
         self.model = model_from_json(model_json)
         # load weights into new model
-        self.model.load_weights("./models/CNN2.h5")
+        self.model.load_weights("./models/CNN.h5")
         print("Loaded model from disk")
 
     def run(self):
