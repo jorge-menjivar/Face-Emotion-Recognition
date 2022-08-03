@@ -8,12 +8,10 @@ from queue import Queue
 
 class Predictor(Thread):
 
-    def __init__(self, queue):
-        Thread.__init__(self)
+    def __init__(self, queue, daemon=False):
+        Thread.__init__(self, daemon=daemon)
         self.queue: Queue = queue
-        self.emotions = []
-        self.emotion_colors = []
-        self.face_frames = []
+        self.preds = []
 
         json_file = open('./models/CNN2.json', 'r')
         model_json = json_file.read()
@@ -26,12 +24,13 @@ class Predictor(Thread):
     def run(self):
         while True:
             # Get the work from the queue and expand the tuple
-            image, faces = self.queue.get()
+            image, face = self.queue.get()
             try:
                 if image is None:
                     break
 
-                self._predict(image, faces)
+                pred = self._predict(image, face)
+                self.preds.append(pred)
             finally:
                 self.queue.task_done()
 
@@ -88,6 +87,4 @@ class Predictor(Thread):
             except cv.error:
                 print("ERROR")
 
-        self.emotion = emotion
-        self.emotion_color = emotion_color
-        self.face_frame = face_frame
+        return emotion, emotion_color, face_frame
