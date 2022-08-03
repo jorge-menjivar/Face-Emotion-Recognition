@@ -61,13 +61,31 @@ buf = io.BytesIO()
 cap = cv.VideoCapture(0)  # Setup the OpenCV capture device (webcam)
 
 queue = Queue()
-predictor_thread = Predictor(queue)
-predictor_thread.start()
+
+threads: list[Predictor] = []
+t1 = Predictor(queue, daemon=True)
+t2 = Predictor(queue, daemon=True)
+t3 = Predictor(queue, daemon=True)
+t4 = Predictor(queue, daemon=True)
+t1.start()
+t2.start()
+t3.start()
+t4.start()
+
+threads.append(t1)
+threads.append(t2)
+threads.append(t3)
+threads.append(t4)
 
 # ---------------------------------- Rendering -------------------------------
 
 CAM_WINDOW_W = 700
 frame_count = 1
+
+emotions = []
+emotion_colors = []
+face_frames = []
+
 while True:
 
     event, values = window.Read(timeout=20, timeout_key='timeout')
@@ -87,17 +105,29 @@ while True:
         break
 
     if frame_count % sample_frequency == 0:
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.1, 6)
+        im_gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(im_gray, 1.1, 6)
 
-        # Sending image and faces to the predictor thread queue and continuing
-        if queue.qsize() < 4:  # Making sure not overwhelm predictor
-            queue.put((gray, faces))
+        for face in faces:
+            queue.put((im_gray, face))
 
-    # Reading whatever the predictor thread has been able to predict
-    emotions = predictor_thread.emotions
-    emotion_colors = predictor_thread.emotion_colors
-    face_frames = predictor_thread.face_frames
+        emotions = []
+        emotion_colors = []
+        face_frames = []
+
+        for t in threads:
+            preds = t.preds
+
+            for pred in preds:
+                emotion = pred[0]
+                emotion_color = pred[1]
+                face_frame = pred[2]
+
+                emotions.append(emotion)
+                emotion_colors.append(emotion_color)
+                face_frames.append(face_frame)
+
+            t.preds.clear()
 
     # Displaying the predictions of the predictor thread
     for emotion, color, face_frame in zip(emotions, emotion_colors,
