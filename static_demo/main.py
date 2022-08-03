@@ -5,11 +5,16 @@ from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI, Request, File, UploadFile
 from keras.preprocessing.image import img_to_array
 from PIL import Image
+from queue import Queue
+from Predictor import Predictor
 import uvicorn
 import cv2 as cv
 import numpy as np
 
-import predict_image
+face_cascade = cv.CascadeClassifier('face_default.xml')
+queue = Queue()
+predictor_thread = Predictor(queue)
+predictor_thread.start()
 
 app = FastAPI(root_path="/")
 
@@ -33,21 +38,45 @@ async def upload_file(user_image: UploadFile = File(...)):
     color = cv.cvtColor(np_image, cv.IMREAD_ANYCOLOR)
     gray = cv.cvtColor(np_image, cv.COLOR_BGR2GRAY)
 
-    face_cascade = cv.CascadeClassifier('face_default.xml')
     faces = face_cascade.detectMultiScale(gray, 1.1, 6)
 
-    emotions = []
-    face_count = 0
     for face in faces:
-        (x, y, w, h) = face
-        face_count += 1
-        cv.rectangle(color, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        cv.putText(color, f"Face {face_count}", (x, y - 10),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-        emotions.append(predict_image.run(gray, face))
+        queue.put((gray, face))
+
+    emotions = []
+    emotion_colors = []
+    face_frames = []
+
+    while queue.qsize() > 0:
+        try:
+            emotion = predictor_thread.emotion
+            emotion_color = predictor_thread.emotion_color
+            face_frame = predictor_thread.face_frame
+
+            emotions.append(emotion)
+            emotion_colors.append(emotion_color)
+            face_frames.append(face_frame)
+
+            (x, y, w, h) = face_frame
+            cv.rectangle(np_image, (x, y), (x + w, y + h), (0, 255, 0), 1)
+            cv.putText(
+                np_image,
+                emotion,
+                (x, y - 10),
+                cv.FONT_HERSHEY_SIMPLEX,
+                1,
+                color,
+                1,
+                cv.LINE_AA,
+            )
+
+        except:
+            pass
 
     image_bytes = cv.imencode('.png', color)[1]
     encoded_image_string = base64.b64encode(image_bytes)
+
+    print(f"emotions: {emotions}")
 
     return {"image": encoded_image_string, "emotions": emotions}
 
